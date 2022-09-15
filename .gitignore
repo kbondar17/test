@@ -5,7 +5,7 @@ my_script.py
 pravo_api_project/__init__.py
 *.html
 temp.py
-
+__init__.py
 # Byte-compiled / optimized / DLL files
 __pycache__/
 

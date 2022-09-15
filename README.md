@@ -499,7 +499,7 @@ api.get_appoints(output_filename)
 
 ## Требования
 * Python >= 3.6.1
-* [requirements.txt](https://github.com/kbondar17/pravo-gov-API/blob/main/requirements.txt)
+* [requirements.txt](https://github.com/kbondar17/pravo.ru_worker/blob/main/requirements.txt)
 
 ## Парсинг
 По умолчанию документы парсятся на предмет наличия назначения/отставки вот этим [парсером](https://github.com/kbondar17/appointment-parser). 
