@@ -39,7 +39,7 @@ class PravoApi:
 
         links_getter = LinksGetter(configs=configs)
         downloaded_links = links_getter.download_links()
-        
+            
         files_loader = FilesDownloader(
             result_folder=configs.RAW_FILES_FOLDER,
             links_to_load=downloaded_links,

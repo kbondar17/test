@@ -57,8 +57,8 @@ class Configs(BaseSettings):
 
     REGION: str = 'РФ' #Свердловская область
     REGION_CODE: str = None # 
-    FEDERAL_GOVERNMENT_BODY = 'Правительство'  # Президент
-    FEDERAL_GOVERNMENT_BODY_CODE: int = 0
+    FEDERAL_GOVERNMENT_BODY = ''  # Президент
+    FEDERAL_GOVERNMENT_BODY_CODE: int = None
 
     SAVE_FORMAT = 'html'
 

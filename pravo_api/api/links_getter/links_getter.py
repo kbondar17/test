@@ -73,10 +73,13 @@ class LinksGetterWorker:
         self.meta_info_getter = MetaInfoGetter(configs)
         self.logger = get_struct_logger(
             name=__name__, log_file=os.environ['pravo_api_log_file'])
+        # breakpoint()
 
     @Log(__name__)
     def create_url(self) -> str:
         """подставляем параметры (DATE, SEARCH_WORD, REGION, GOVERNMENT_BODY ) в url"""
+
+
 
         base_params = {'bpas': '', 'a3': '', 'a3type': '1', 'a3value': '', 'a6': '', 'a6type': '1', 'a6value': '',
                        'a15': '', 'a15type': '1', 'a15value': '', 'a7type': '3', 'a7from': '', 'a7to': '', 'a7date': '',
@@ -84,13 +87,17 @@ class LinksGetterWorker:
                        'a17type': '1', 'a17value': '', 'a4': '', 'a4type': '1', 'a4value': '', 'a23': '', 'a23type': '1',
                        'a23value': '', 'textpres': '', 'sort': '7', 'x': '48', 'y': '8', 'lstsize': '200', 'start': '0'}
 
-        user_params = {'a7type': '4', 'bpas': self.configs.REGION_CODE, "a6": self.configs.FEDERAL_GOVERNMENT_BODY_CODE,
+        # base_params = {'bpas':'', 'a3type': '1', 'a6type': '1', 'a15type': '1', 'a7type': '4', 'a7from': '', 'a7to': '', 'a8type': '1', 'a0': '', 'a16type': '1', 'a17type': '1', 'a4type': '1', 'a23type': '1', 'sort': '7','lstsize': '200', 'start': '0' }
+
+
+        user_params = {'a7type': '4', 'bpas': self.configs.REGION_CODE, "a6": self.configs.FEDERAL_GOVERNMENT_BODY_CODE or '',
                        'a6value': self.configs.FEDERAL_GOVERNMENT_BODY, 'a7from': self.configs.FROM_DATE,
                        'a7to': self.configs.TO_DATE, 'a0': self.configs.SEARCH_WORD}
 
+        # user_params = {k: v for k, v in user_params.items() if v}
         base_params.update(user_params)
         encoded_params = urllib.parse.urlencode(base_params, encoding='cp1251')
-        url = self.base_url + '?searchlist=&' + encoded_params
+        url = self.base_url + '?searchlist=&' + encoded_params + '&x=29&y=4'
         return url
 
     @backoff.on_exception(backoff.expo, requests.exceptions.RequestException, max_tries=4, max_time=30)
@@ -98,7 +105,7 @@ class LinksGetterWorker:
     def get_pages_to_parse(self, url) -> List[str]:
         """вытягиваем ссылки на страницы. на каждой по 200 документов"""
         r = requests.get(url).content.decode('cp1251')
-        
+        print(url)
         if not r:
             self.logger.error('Документы по запросу не найдены. Попробуй расширить поиск.')
             exit()

@@ -4,7 +4,7 @@ build-backend = "setuptools.build_meta"
 
 [project]
 name = "pravo-api"
-version = "0.0.7"
+version = "0.0.10"
 description = "Get Russian laws, federal and regional decrees."
 readme = "README.md"
 authors = [{ name = "Kirill Bondar", email = "ironbondar@gmail.com" }]
