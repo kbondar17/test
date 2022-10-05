@@ -51,11 +51,10 @@ class CustomPrintLogger:
     def _dump(self, event_dict: dict):
 
         event_dict = str(event_dict)
-        # event_dict['event'] = str(event_dict['event'])
         try:
             with open(self.log_file, encoding='utf-8') as f:
                 data = json.load(f)
-        except json.JSONDecodeError:
+        except Exception:
             data = []
         data.append(event_dict)
         data: list
