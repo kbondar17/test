@@ -2,16 +2,36 @@
 
 Это неофициальный апи официального интернет-портала правовой информации (http://pravo.gov.ru/). Позволяет скачивать законы, указы, распоряжения и другие правовые акты федеральных и региональных ведомств. 
 
-
-## Требования
-* Python >= 3.10.2
-* [requirements.txt](https://github.com/kbondar17/pravo-gov-API/blob/main/requirements.txt) или [poetry.lock](https://github.com/kbondar17/pravo-gov-API/blob/main/poetry.lock) 
+## Установка
+```
+pip install pravo-api
+```
 
 ## Использование
 
 Одна команда скачает все документы, попадающие под критерии поиска.
 
-```python -m api.get```
+```
+from pathlib import Path
+
+from pravo_api import PravoApi
+
+data_folder = Path('./worker_test_folder').absolute()
+
+from pravo_api import PravoApi
+
+api = PravoApi(
+                FEDERAL_GOVERNMENT_BODY='Правительство', 
+                DATA_FOLDER=data_folder,
+                FROM_DATE='10.20.2013', TO_DATE='01.01.2014',
+                log_file='my_custom.log' 
+                )
+
+output_filename = 'results.json'
+api.get_appoints(output_filename)
+
+
+```
 
 Скрипт использует три эндпоинта, которым можно придумать свое применение:
 
@@ -480,27 +500,14 @@
 
 Формат дат: дд.мм.гггг
 
-
-## Сохранение и логи
-Документы сохраняются в формате html (с html тэгами) или txt (только текст) в папке RAW_FILES_FOLDER (по умолнчанию data/). В случае с html в файл в тэг <my_meta></> сохраняются метаданные документа - дата, тэги, автор (подписавший) и ссылка. Эти же данные сохраняются в файл LINKS_N_FILES_INFO (по умолнчанию files_n_links.json).
- 
 Название файла - id документа на портале.
 
-Структура хранения по умолчанию. 
-
-        ├── data/
-        │   └── Калужская область/
-        │       ├── links/
-        │       │   └── files_n_links.json -- мета-информация о документах 
-        │       └── raw_files/
-        |           └──1234566788.html -- сам файл
-
-
-
+## Требования
+* Python >= 3.6.1
+* [requirements.txt](https://github.com/kbondar17/pravo.ru_worker/blob/main/requirements.txt)
 
 ## Парсинг
-Есть [парсер](https://github.com/kbondar17/appointment-parser) указов с назначениями и отставками. Позволяет выделять назначения на должности и отставки.
-
+По умолчанию документы парсятся на предмет наличия назначения/отставки вот этим [парсером](https://github.com/kbondar17/appointment-parser). 
 
 
 

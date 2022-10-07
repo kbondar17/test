@@ -1,13 +1,16 @@
-from bs4 import BeautifulSoup
-from pathlib import Path
 import json
+from pathlib import Path
+from typing import Union
+
+from bs4 import BeautifulSoup
+
 
 class MetaGetter:
     '''
     ходит в файл с метаданными meta_data_file и вставляет инфу в тело документа
     '''
     
-    def __init__(self, meta_data_file:str|Path) -> None:
+    def __init__(self, meta_data_file:Union[str,Path]) -> None:
         with open(meta_data_file, encoding='utf-8') as f:
             self.meta_data = json.load(f)
 
