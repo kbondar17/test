@@ -2,12 +2,12 @@ import json
 import logging
 import os
 from functools import wraps
-from typing import Any
+from pathlib import Path
+from typing import Any, Union
 
 import structlog
-from api.config import configs
 
-LOGGIN_LEVEL = configs.LOGGING_LEVEL
+LOGGIN_LEVEL = "ERROR"
 
 
 def create_logger(name):
@@ -41,20 +41,20 @@ class Log:
 
 
 class CustomPrintLogger:
-    def __init__(self, log_file) -> None:
-        self.log_file = log_file
+    def __init__(self, log_file:str) -> None:
+        self.log_file = Path(log_file)
         if not os.path.exists(self.log_file):
+            self.log_file.parent.mkdir(exist_ok=True, parents=True)
             with open(self.log_file, 'w') as f:
                 ...
 
     def _dump(self, event_dict: dict):
 
         event_dict = str(event_dict)
-        # event_dict['event'] = str(event_dict['event'])
         try:
             with open(self.log_file, encoding='utf-8') as f:
                 data = json.load(f)
-        except json.JSONDecodeError:
+        except Exception:
             data = []
         data.append(event_dict)
         data: list
@@ -63,13 +63,13 @@ class CustomPrintLogger:
 
     def __call__(
         self, logger, name: str, event_dict
-    ) -> str | bytes:
+    ) -> Union[str, bytes]:
 
         self._dump(event_dict)
         return repr(event_dict)
 
 
-def get_struct_logger(name: str, log_file=configs.MAIN_LOG_FILE):
+def get_struct_logger(name: str, log_file):
     structlog.configure(
         processors=[structlog.stdlib.add_log_level, CustomPrintLogger(log_file)])
     log = structlog.get_logger()

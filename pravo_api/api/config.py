@@ -5,6 +5,7 @@
 
 import json
 from pathlib import Path
+from typing import Union
 
 from pydantic import BaseSettings, validator
 
@@ -49,52 +50,62 @@ class Configs(BaseSettings):
 
     '''
 
-    SEARCH_WORD: str | None = 'назначить' # 
-    SEARCH_TAG: str | None = 'назначение' #
-    FROM_DATE: str | None = '01.01.2021'
-    TO_DATE: str | None = '01.08.2022'
+    SEARCH_WORD: Union [str, None] = 'назначить' # 
+    SEARCH_TAG: Union [str, None] = 'назначение' #
+    FROM_DATE: Union [str, None] = '01.01.2021'
+    TO_DATE: Union [str, None] = '01.08.2022'
 
     REGION: str = 'РФ' #Свердловская область
     REGION_CODE: str = None # 
-    FEDERAL_GOVERNMENT_BODY = 'Президент'  # Президент
-    FEDERAL_GOVERNMENT_BODY_CODE: int = 0
+    FEDERAL_GOVERNMENT_BODY = ''  # Президент
+    FEDERAL_GOVERNMENT_BODY_CODE: int = None
 
     SAVE_FORMAT = 'html'
 
     # Папки
-    DATA_FOLDER: Path = Path(__file__).parents[1] / 'data'
-    REGION_FOLDER = DATA_FOLDER / REGION
+    DATA_FOLDER: Path # = Path(__file__).parents[1] / 'data'
 
-    RAW_FILES_FOLDER: Path = DATA_FOLDER / REGION / 'raw_files'
-    LINKS_FOLDER: Path = DATA_FOLDER / REGION / 'links'
-    LINKS_N_FILES_INFO = LINKS_FOLDER / 'files_n_links.json'
-
-    LINKS_FAILED_AT_DOWNLOADING = LINKS_FOLDER / 'failed_links.json'
+    # REGION_FOLDER = DATA_FOLDER / REGION
+    # RAW_FILES_FOLDER: Path = DATA_FOLDER / REGION / 'raw_files'
+    # LINKS_FOLDER: Path = DATA_FOLDER / REGION / 'links'
+    # LINKS_N_FILES_INFO = LINKS_FOLDER / 'files_n_links.json'
+    # LINKS_FAILED_AT_DOWNLOADING = LINKS_FOLDER / 'failed_links.json'
 
     # Прочее
     LOGGING_LEVEL: str = 'ERROR'
-    MAIN_LOG_FILE: str = 'api/logs/main.json'
 
-
-    @validator('DATA_FOLDER', 'RAW_FILES_FOLDER', 'LINKS_FOLDER')
-    def create_folders(cls, v: Path, values):
-        '''создаем папки, если их нет'''
-        v.mkdir(exist_ok=True, parents=True)
-        return v
-
-    @validator('LINKS_N_FILES_INFO')
-    def create_files_if_not_exist(cls, v: Path, values, **kwargs):
-        if not v.exists():
-            with open(v, 'w', encoding='utf-8') as f:
+    @staticmethod
+    def create_file_if_not_exists(filepath:Path):
+        if not filepath.exists():
+            with open(filepath, 'w', encoding='utf-8') as f:
                 ...
-        return v
+
+    @validator('DATA_FOLDER')
+    def fun(cls, v: Path, values):
+        DATA_FOLDER = v
+
+        values['REGION_FOLDER']: Path = DATA_FOLDER / values['REGION']
+        values['RAW_FILES_FOLDER'] = DATA_FOLDER / values['REGION'] / 'raw_files'
+        values['LINKS_FOLDER'] = DATA_FOLDER / values['REGION'] / 'links'
+
+        values['LINKS_FOLDER'].mkdir(exist_ok=True, parents=True)
+        values['REGION_FOLDER'].mkdir(exist_ok=True, parents=True)
+        values['RAW_FILES_FOLDER'].mkdir(exist_ok=True, parents=True)
+
+        values['LINKS_N_FILES_INFO'] = values['LINKS_FOLDER'] / 'files_n_links.json'
+        values['LINKS_FAILED_AT_DOWNLOADING'] = values['LINKS_FOLDER'] / 'failed_links.json'
+
+        cls.create_file_if_not_exists(values['LINKS_N_FILES_INFO'])
+        cls.create_file_if_not_exists(values['LINKS_FAILED_AT_DOWNLOADING'])
+
+        return DATA_FOLDER
 
     @validator('FEDERAL_GOVERNMENT_BODY', pre=True)
     def translate_human_to_code(cls, v, values):
         '''находит айди учреждения. напр - Президент == '102000070' '''
         if not v:
             return ''
-        with open('api/api_data/gov_bodies_n_their_codes.json', encoding='utf-8') as f:
+        with open(Path(__file__).parent / 'api_data/gov_bodies_n_their_codes.json', encoding='utf-8') as f:
             gov_bodies_codes = json.load(f)
             if v in gov_bodies_codes.keys():
                 values['FEDERAL_GOVERNMENT_BODY_CODE'] = gov_bodies_codes[v]
@@ -107,7 +118,8 @@ class Configs(BaseSettings):
         '''находит айди региона. напр - Брянская область == 'r013200' '''
         if not values['REGION']:
             return 'cd00000'
-        with open('api/api_data/regions_n_their_numbers.json', encoding='utf-8') as f:
+        
+        with open(Path(__file__).parent / 'api_data/regions_n_their_numbers.json', encoding='utf-8') as f:
             try:
                 codes = json.load(f)
                 region_code = codes[values['REGION']]
@@ -117,9 +129,3 @@ class Configs(BaseSettings):
                     f'''{values['REGION']} направильно указан регион. допустимые значения {list(codes.keys())}''')
 
 
-    @validator('MAIN_LOG_FILE')
-    def get_abs_path(cls, v, values):
-        return Path(v).absolute()
-
-
-configs = Configs()
