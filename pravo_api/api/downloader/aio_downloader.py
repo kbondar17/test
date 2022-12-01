@@ -122,7 +122,6 @@ class FilesDownloader:
     def go(self):
         loop = asyncio.get_event_loop()
         responses = loop.run_until_complete(self.gather_tasks())
-        print('responses from gather tasks', responses)
 
     async def __old_download_links(self, links: List[str]) -> List[Union[str, None]]:
         failed_links = []
