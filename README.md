@@ -18,7 +18,6 @@ from pravo_api import PravoApi
 
 data_folder = Path('./worker_test_folder').absolute()
 
-from pravo_api import PravoApi
 
 api = PravoApi(
                 FEDERAL_GOVERNMENT_BODY='Правительство', 
