@@ -18,16 +18,17 @@ from pravo_api import PravoApi
 
 data_folder = Path('./worker_test_folder').absolute()
 
-
 api = PravoApi(
                 FEDERAL_GOVERNMENT_BODY='Правительство', 
                 DATA_FOLDER=data_folder,
-                FROM_DATE='10.20.2013', TO_DATE='01.01.2014',
-                log_file='my_custom.log' 
+                FROM_DATE='20.12.2013', TO_DATE='01.01.2014',
+                log_file='my.log',
+                SAVE_FORMAT='txt' # или html
                 )
 
-output_filename = 'results.json'
-api.get_appoints(output_filename)
+api.get()
+
+
 
 
 ```
