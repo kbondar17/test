@@ -12,7 +12,11 @@ from pravo_api.api import Configs
 
 class PravoApi:
 
-    def __init__(self, log_file:Union[str, None], **configs) -> None:
+    def __init__(self, log_file:Union[str, None], parse_appointments=None, **configs) -> None:
+        """
+        parser: класс который принимает папку с файлами
+        """
+        self.parse_appointments = parse_appointments
         self.config = Configs(**configs)
         if log_file:
             log_file = self.get_absolute_filepath(log_file)
@@ -20,8 +24,9 @@ class PravoApi:
             log_file = str(Path(sys.path[0]) / 'pravo.log')
         os.environ.setdefault('pravo_api_log_file', log_file)
     
-    def get_appoints(self, output_filename:str):
-        output_filename = self.get_absolute_filepath(output_filename)
+    def get(self, output_filename:str=None):
+        if output_filename:
+            output_filename = self.get_absolute_filepath(output_filename)
         appoints = self._load_new(self.config, output_filename)
         return appoints
 
@@ -33,7 +38,7 @@ class PravoApi:
             output_filepath = parent_folder / output_filepath
         return str(output_filepath)
 
-    def _load_new(self, configs:Configs, output_filename:str):
+    def _load_new(self, configs:Configs, output_filename:str=None):
         my_logger = get_struct_logger(__name__, os.environ['pravo_api_log_file'])
         my_logger.msg('стартуем')
 
@@ -49,9 +54,10 @@ class PravoApi:
         )
 
         files_loader.go()
-
-        parser = Parser(configs.SEARCH_WORD)
-        return parser.parse_folder(configs.RAW_FILES_FOLDER, output_filename)
+        
+        if self.parse_appointments:
+            parser = Parser(configs.SEARCH_WORD)
+            return parser.parse_folder(configs.RAW_FILES_FOLDER, output_filename)
 
 
 
