@@ -13,9 +13,6 @@ from pravo_api.api import Configs
 class PravoApi:
 
     def __init__(self, log_file:Union[str, None], parse_appointments=None, **configs) -> None:
-        """
-        parser: класс который принимает папку с файлами
-        """
         self.parse_appointments = parse_appointments
         self.config = Configs(**configs)
         if log_file:
