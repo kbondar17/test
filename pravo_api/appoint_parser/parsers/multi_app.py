@@ -1,7 +1,7 @@
 import typing
 
 import pymorphy2
-from pravo_api.appoint_parser.tools import NameParser, TextCleaner
+from ..tools import NameParser, TextCleaner
 from pravo_api.appoint_parser.utils import models
 
 from .single_appo import SingleAppointment
@@ -15,16 +15,20 @@ class ParseOnePosition:
         self.name_parser = NameParser()
         self.text_cleaner = TextCleaner()
 
-    def filter_unwanted_lines_in_persons(self, lines: typing.List[str]) -> typing.List[str]:
+    def filter_unwanted_lines_in_persons(
+        self, lines: typing.List[str]
+    ) -> typing.List[str]:
         res = []
-        stop_words = ['Принять к сведению']
+        stop_words = ["Принять к сведению"]
         for line in lines:
             for word in stop_words:
                 if word not in line:
                     res.append(line)
         return res
 
-    def find_names(self, position: str, raw_persons: typing.List[str]) -> models.AppoitmentLine:
+    def find_names(
+        self, position: str, raw_persons: typing.List[str]
+    ) -> models.AppoitmentLine:
         app_line = models.AppoitmentLine(raw_line=position, position=position)
         filtered_persons = self.filter_unwanted_lines_in_persons(raw_persons)
         for i, pers in enumerate(filtered_persons):
@@ -32,7 +36,7 @@ class ParseOnePosition:
             parsed_name = self.name_parser.parse_multiple_appo(pers_object)
             for name in parsed_name:
                 name: models.Person
-                if '??' not in name.fio['surname']:
+                if "??" not in name.fio["surname"]:
                     app_line.appointees.append(name)
 
         return app_line
@@ -43,20 +47,20 @@ class ParseOnePosition:
         self.file_data.appointment_lines.append(app_line)
 
         for line in self.file_data.appointment_lines:
-            line.position = self.text_cleaner.remove_unwanted_words(
-                line.position)
+            line.position = self.text_cleaner.remove_unwanted_words(line.position)
 
         return self.file_data
 
 
 class ParseManyPositions:
-
     def __init__(self) -> None:
         self.file_data: models.FileData = None
         self.parser = SingleAppointment()
 
-    def parse(self, persons_n_position: typing.List[str], file_data: models.FileData) -> models.FileData:
-        '''persons_n_position: список строк где есть имя и, веротяно, назначние. парсим как раньше'''
+    def parse(
+        self, persons_n_position: typing.List[str], file_data: models.FileData
+    ) -> models.FileData:
+        """persons_n_position: список строк где есть имя и, веротяно, назначние. парсим как раньше"""
         self.file_data = file_data
         app_lines = []
         for line in persons_n_position:
@@ -67,7 +71,7 @@ class ParseManyPositions:
 
 
 class MultipleAppointment:
-    '''достает имена и app lines'''
+    """достает имена и app lines"""
 
     def __init__(self) -> None:
         self.file_data: models.FileData = None
@@ -78,64 +82,73 @@ class MultipleAppointment:
     def check_if_pozition_in_nazhnachit(nazcnach_line: str):
         if not nazcnach_line:
             return False
-        if 'Назначить в совет' in nazcnach_line:
-            print('назначение одно на всех')
+        if "Назначить в совет" in nazcnach_line:
+            print("назначение одно на всех")
             return True
 
         for word in nazcnach_line.split():
-            if morph.parse(word)[0].tag.case == 'ablt' and word != 'сроком':
-                print('назначение одно на всех', word)
+            if morph.parse(word)[0].tag.case == "ablt" and word != "сроком":
+                print("назначение одно на всех", word)
                 return True
 
     @staticmethod
     def _find_naznach_line(lines: typing.List[str]) -> typing.Union[str, None]:
         for line in lines:
-            if 'Назначить' in line or 'назначить' in line:
+            if "Назначить" in line or "назначить" in line:
                 return line
-        raise ValueError('в файле нет назначить')
+        raise ValueError("в файле нет назначить")
 
     @staticmethod
-    def _concat_people_with_naznach(lines: typing.List[str], naznach_line: str) -> typing.List[dict]:
+    def _concat_people_with_naznach(
+        lines: typing.List[str], naznach_line: str
+    ) -> typing.List[dict]:
         naznach_line_index = lines.index(naznach_line)
         position = lines[naznach_line_index]
         persons = []
         for line in lines[naznach_line_index:-4]:
             persons.append(line)
-        return {'position': position, 'persons': persons}
+        return {"position": position, "persons": persons}
 
     @staticmethod
-    def _get_people_with_their_positions(lines: typing.List[str], naznach_line: str) -> typing.List[str]:
+    def _get_people_with_their_positions(
+        lines: typing.List[str], naznach_line: str
+    ) -> typing.List[str]:
         naznach_line_index = lines.index(naznach_line)
         res = []
-        for line in lines[naznach_line_index+1:-4]:
+        for line in lines[naznach_line_index + 1 : -4]:
             res.append(line)
         return res
 
     def get_app_lines(self, data: models.FileData):
         self.file_data = data
         self.file_data.naznach_line = self._find_naznach_line(
-            self.file_data.splitted_text)
+            self.file_data.splitted_text
+        )
 
         if self.check_if_pozition_in_nazhnachit(self.file_data.naznach_line):
-            print('get_app_lines :: должность в назначить!')
+            print("get_app_lines :: должность в назначить!")
             # если ли название должности в строке с "назначить?"
             # если да - то склеиваем эту строчку с каждым назначенцем
             persons_with_positions = self._concat_people_with_naznach(
-                self.file_data.splitted_text, self.file_data.naznach_line)
+                self.file_data.splitted_text, self.file_data.naznach_line
+            )
 
             file_data_with_names_n_positions = self.one_position_parser.parse(
-                position=persons_with_positions['position'],
-                persons=persons_with_positions['persons'],
-                file_data=self.file_data)
+                position=persons_with_positions["position"],
+                persons=persons_with_positions["persons"],
+                file_data=self.file_data,
+            )
 
         else:
             # если нет - то обрабатываем каждую строку отдельно
-            print('get_app_lines :: НЕТ должности в назначить!')
+            print("get_app_lines :: НЕТ должности в назначить!")
             people_with_their_positions = self._get_people_with_their_positions(
-                self.file_data.splitted_text, self.file_data.naznach_line)
+                self.file_data.splitted_text, self.file_data.naznach_line
+            )
 
             file_data_with_names_n_positions = self.many_positions_parser.parse(
-                people_with_their_positions, self.file_data)
+                people_with_their_positions, self.file_data
+            )
 
         return file_data_with_names_n_positions
 
