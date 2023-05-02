@@ -25,7 +25,7 @@ class MetaInfoGetter:
         )
 
     @backoff.on_exception(
-        backoff.expo, requests.exceptions.RequestException, max_tries=4, max_time=30
+        backoff.expo, requests.exceptions.RequestException, max_tries=3, max_time=30
     )
     def _get_raw_meta_data(self, doc_id) -> str:  # html
         url_meta = f"http://pravo.gov.ru/proxy/ips/?doc_itself=&vkart=card&nd={doc_id}\
@@ -151,7 +151,7 @@ class LinksGetterWorker:
         return url
 
     @backoff.on_exception(
-        backoff.expo, requests.exceptions.RequestException, max_tries=4, max_time=30
+        backoff.expo, requests.exceptions.RequestException, max_tries=3, max_time=30
     )
     @Log(__name__)
     def get_pages_to_parse(self, url) -> List[str]:
@@ -179,7 +179,7 @@ class LinksGetterWorker:
         return page_links
 
     @backoff.on_exception(
-        backoff.expo, requests.exceptions.RequestException, max_tries=4, max_time=30
+        backoff.expo, requests.exceptions.RequestException, max_tries=3, max_time=30
     )
     @Log(__name__)
     def get_page_docs(self, page_url: str) -> List[str]:
@@ -197,7 +197,7 @@ class LinksGetterWorker:
         return doc_links
 
     @backoff.on_exception(
-        backoff.expo, requests.exceptions.RequestException, max_tries=4, max_time=30
+        backoff.expo, requests.exceptions.RequestException, max_tries=3, max_time=30
     )
     @Log(__name__)
     def _get_all_links(self, initial_url) -> Union[List[str], None]:
@@ -228,7 +228,7 @@ class LinksGetterWorker:
         return filtered
 
     @backoff.on_exception(
-        backoff.expo, requests.exceptions.RequestException, max_tries=4, max_time=30
+        backoff.expo, requests.exceptions.RequestException, max_tries=3, max_time=30
     )
     @Log(__name__)
     def get_links(self, tag_we_need="") -> Dict[str, dict]:
@@ -279,6 +279,8 @@ class LinksGetter:
         self.links_loader = LinksGetterWorker(configs)
 
     def download_links(self):
+        print(self.configs)
+        exit()
         return self.links_loader.download_links(
             destination_path=self.configs.LINKS_N_FILES_INFO
         )

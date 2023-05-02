@@ -50,6 +50,9 @@ class Configs(BaseSettings):
 
     """
 
+    class Config:
+        env_file = Path(__file__).parent / ".env"
+
     SEARCH_WORD: Union[str, None] = "назначить"  #
     SEARCH_TAG: Union[str, None] = "назначение"  #
     FROM_DATE: Union[str, None] = "01.01.2021"
@@ -71,11 +74,8 @@ class Configs(BaseSettings):
     # LINKS_N_FILES_INFO = LINKS_FOLDER / 'files_n_links.json'
     # LINKS_FAILED_AT_DOWNLOADING = LINKS_FOLDER / 'failed_links.json'
 
-    PROXY: dict = {
-        "http": "http://MAP3F4:jtfXFn@212.81.36.41:9799",
-        "https": "https://MAP3F4:jtfXFn@212.81.36.41:9799",
-    }
-
+    proxy_string: str = None
+    PROXY: dict = {}
     # Прочее
     LOGGING_LEVEL: str = "ERROR"
 
@@ -84,6 +84,14 @@ class Configs(BaseSettings):
         if not filepath.exists():
             with open(filepath, "w", encoding="utf-8") as f:
                 ...
+
+    @validator("PROXY", pre=True)
+    def proxy(cls, value, values):
+        if values["proxy_string"]:
+            return {
+                "http": f"http://{values['proxy_string']}",
+                "https": f"https://{values['proxy_string']}",
+            }
 
     @validator("DATA_FOLDER")
     def fun(cls, v: Path, values):
