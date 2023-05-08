@@ -279,8 +279,6 @@ class LinksGetter:
         self.links_loader = LinksGetterWorker(configs)
 
     def download_links(self):
-        print(self.configs)
-        exit()
         return self.links_loader.download_links(
             destination_path=self.configs.LINKS_N_FILES_INFO
         )
