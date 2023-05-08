@@ -31,6 +31,7 @@ class MetaInfoGetter:
         url_meta = f"http://pravo.gov.ru/proxy/ips/?doc_itself=&vkart=card&nd={doc_id}\
                     &page=1&rdk=0&intelsearch=&link_id=0"
         r = requests.get(url_meta, proxies=self.configs.PROXY).content.decode("cp1251")
+        self.logger(f"RESPONSE:: {r}")
         return r
 
     def get_tags(self, soup: BeautifulSoup) -> Union[List[str], List[None]]:
