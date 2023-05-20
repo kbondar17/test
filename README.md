@@ -505,7 +505,7 @@ api.get()
 Название файла - id документа на портале.
 
 ## Требования
-* Python >= 3.6.1
+* Python >= 3.6.1. (не тестировался выше 3.9.6)
 * [requirements.txt](https://github.com/kbondar17/pravo.ru_worker/blob/main/requirements.txt)
 
 ## Парсинг
