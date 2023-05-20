@@ -14,19 +14,25 @@ pip install pravo-api
 ```
 from pathlib import Path
 
-from pravo_api import PravoApi
+from pravo_api import PravoApi, Configs
 
-data_folder = Path('./worker_test_folder').absolute()
+data_folder = Path("./government_2013_2024").absolute()
+
+
+configs = Configs(
+    FEDERAL_GOVERNMENT_BODY="Правительство",
+    FROM_DATE="20.12.2013",
+    TO_DATE="01.01.2014",
+    SAVE_FORMAT="txt",  # или html
+    DATA_FOLDER=data_folder,
+)
 
 api = PravoApi(
-                FEDERAL_GOVERNMENT_BODY='Правительство', 
-                DATA_FOLDER=data_folder,
-                FROM_DATE='20.12.2013', TO_DATE='01.01.2014',
-                log_file='my.log',
-                SAVE_FORMAT='txt' # или html
-                )
+    parse_appointments=True, parse_only=False, log_file="my.log", configs=configs
+)
 
 api.get()
+
 ```
 
 Скрипт использует три эндпоинта, которым можно придумать свое применение:
