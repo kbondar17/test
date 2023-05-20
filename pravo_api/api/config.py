@@ -69,7 +69,7 @@ class Configs(BaseSettings):
     DATA_FOLDER: Path  # = Path(__file__).parents[1] / 'data'
 
     # REGION_FOLDER = DATA_FOLDER / REGION
-    # RAW_FILES_FOLDER: Path = DATA_FOLDER / REGION / 'raw_files'
+    # RAW_FILES_FOLDER: Path  = DATA_FOLDER / REGION / "raw_files"
     # LINKS_FOLDER: Path = DATA_FOLDER / REGION / 'links'
     # LINKS_N_FILES_INFO = LINKS_FOLDER / 'files_n_links.json'
     # LINKS_FAILED_AT_DOWNLOADING = LINKS_FOLDER / 'failed_links.json'
@@ -92,6 +92,7 @@ class Configs(BaseSettings):
                 "http": f"http://{values['proxy_string']}",
                 "https": f"https://{values['proxy_string']}",
             }
+        return {}
 
     @validator("DATA_FOLDER")
     def fun(cls, v: Path, values):

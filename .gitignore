@@ -1,8 +1,4 @@
 # My stuff
-Dockerfile
-docker-compose.yaml
-my_script.py
-pravo_api_project/__init__.py
 *.html
 temp.py
 # Byte-compiled / optimized / DLL files

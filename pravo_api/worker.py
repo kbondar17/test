@@ -1,7 +1,7 @@
 import os
 import sys
 from pathlib import Path
-from typing import Union, TYPE_CHECKING
+from typing import Union
 
 
 from .api import LinksGetter, FilesDownloader, get_struct_logger, Configs
@@ -15,21 +15,38 @@ class PravoApi:
         log_file: Union[str, None],
         parse_only=False,
         parse_appointments=False,
-        **configs,
+        configs: Configs = {},
     ) -> None:
         self.parse_appointments = parse_appointments
         self.parse_only = parse_only
-        self.config = Configs(**configs)
+        self.configs = configs
         if log_file:
             log_file = self.get_absolute_filepath(log_file)
         else:
             log_file = str(Path(sys.path[0]) / "pravo.log")
         os.environ.setdefault("pravo_api_log_file", log_file)
-        self.links_getter = LinksGetter(configs=self.config)
+        self.links_getter = LinksGetter(configs=self.configs)
 
-    def get(self, *, output_filename: str):
+    def get(self):
+        my_logger = get_struct_logger(__name__, os.environ["pravo_api_log_file"])
+        my_logger.msg("стартуем")
+
+        downloaded_links = self.links_getter.download_links()
+
+        files_loader = FilesDownloader(
+            result_folder=self.configs.RAW_FILES_FOLDER,
+            links_to_load=downloaded_links,
+            failed_links_file=self.configs.LINKS_FAILED_AT_DOWNLOADING,
+            meta_data_file=self.configs.LINKS_N_FILES_INFO,
+            format=self.configs.SAVE_FORMAT,
+            config=self.configs,
+        )
+
+        files_loader.go()
+
+    def get_parsed_appoints(self, *, output_filename: str):
         output_filename = self.get_absolute_filepath(output_filename)
-        appoints = self._load_new(self.config, output_filename)
+        appoints = self._load_new(self.configs, output_filename)
         return appoints
 
     def get_absolute_filepath(self, output_filepath: str) -> str:

@@ -10,7 +10,7 @@ from typing import List, Union
 import inspect
 import backoff
 import aiohttp
-import tqdm
+from aiohttp import ClientSession
 from aiohttp_retry import ExponentialRetry, RetryClient
 from bs4 import BeautifulSoup
 from pravo_api.api.downloader.meta_data_getter import MetaGetter
@@ -101,26 +101,22 @@ class FilesDownloader:
         max_tries=4,
         max_time=30,
     )
-    async def download_file(self, link: str):
+    async def download_file(self, link: str) -> None:
         file_name = self._get_file_id(link)
         self.filelogger.bind(filename=file_name)
-        retry_options = ExponentialRetry(attempts=3, max_timeout=10)
-        retry_client = RetryClient(raise_for_status=False, retry_options=retry_options)
-        async with retry_client.get(link, proxy=self.config.PROXY["http"]) as response:
-            time.sleep(uniform(0.2, 0.6))
 
-            await retry_client.close()
-
-            if response.status != 200:
-                self.filelogger.error(event=f"{response.content.decode()}")
-
-            else:
-                html = await response.text()
-                self.save_document(
-                    file_name=file_name, doc_body=html, format=self.format
-                )
-                self.filelogger.debug(event=f"Соханили файл {file_name}")
-                return f"{file_name} -- OK"
+        async with ClientSession() as client:
+            async with client.get(link) as response:
+                time.sleep(uniform(0.2, 0.6))
+                if response.status != 200:
+                    self.filelogger.error(event=f"{response.content.decode()}")
+                else:
+                    html = await response.text()
+                    self.save_document(
+                        file_name=file_name, doc_body=html, format=self.format
+                    )
+                    self.filelogger.debug(event=f"Соханили файл {file_name}")
+                    return f"{file_name} -- OK"
 
     def _get_tasks(self):
         for link in self.links:
@@ -134,49 +130,3 @@ class FilesDownloader:
     def go(self):
         loop = asyncio.get_event_loop()
         loop.run_until_complete(self.gather_tasks())
-
-    async def __old_download_links(self, links: List[str]) -> List[Union[str, None]]:
-        failed_links = []
-        async with aiohttp.ClientSession() as session:
-            for link in tqdm.tqdm(links):
-                doc_id = self._get_file_id(link)
-                file_name = doc_id
-                try:
-                    async with session.get(link) as response:
-                        if response.status == 200:
-                            html = await response.text()
-                            self.save_document(
-                                file_name=file_name, doc_body=html, format=self.format
-                            )
-                            filelogger = self.filelogger.bind(filename=file_name)
-                            filelogger.debug("doc downloaded successfully")
-                            time.sleep(uniform(0.2, 0.6))
-
-                        else:
-                            if link not in failed_links:
-                                failed_links.append(link)
-                            filelogger = self.filelogger.bind(
-                                filename=file_name, http_eror=response.status
-                            )
-                            filelogger.error("http_error")
-
-                except aiohttp.ClientConnectorError as err:
-                    filelogger = self.filelogger.bind(filename=file_name, eror=str(err))
-                    filelogger.error("connection_error")
-                    if link not in failed_links:
-                        failed_links.append(link)
-        return failed_links
-
-    # def __old_go(self) -> None:
-    #     loop = asyncio.get_event_loop()
-
-    #     failed = loop.run_until_complete(self.download_links(self.links))
-    #     if failed:
-    #         failed_in_second_attempt = loop.run_until_complete(
-    #             self.download_links(failed))
-    #         self.filelogger.error(
-    #             f'not downloaded after second attempt {failed_in_second_attempt}')
-    #         self._save_failed_links(failed)
-
-    #     self.filelogger.debug(
-    #         f'Dowloaded {self.downloaded} / {len(self.links)}')

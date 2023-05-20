@@ -31,7 +31,6 @@ class MetaInfoGetter:
         url_meta = f"http://pravo.gov.ru/proxy/ips/?doc_itself=&vkart=card&nd={doc_id}\
                     &page=1&rdk=0&intelsearch=&link_id=0"
         r = requests.get(url_meta, proxies=self.configs.PROXY).content.decode("cp1251")
-        self.logger(f"RESPONSE:: {r}")
         return r
 
     def get_tags(self, soup: BeautifulSoup) -> Union[List[str], List[None]]:
@@ -158,14 +157,11 @@ class LinksGetterWorker:
     def get_pages_to_parse(self, url) -> List[str]:
         """вытягиваем ссылки на страницы. на каждой по 200 документов"""
         r = requests.get(url, proxies=self.configs.PROXY).content.decode("cp1251")
-        print(url)
         if not r:
             self.logger.error(
                 "Документы по запросу не найдены. Попробуй расширить поиск."
             )
             exit()
-        #     raise HTTPError(
-        #         url, 404, 'Документы по запросу не найдены. Попробуй расширить поиск.', hdrs='aa', fp='')
 
         soup = BeautifulSoup(r, "html.parser")
 
@@ -186,6 +182,7 @@ class LinksGetterWorker:
     def get_page_docs(self, page_url: str) -> List[str]:
         """вытаскиваем все ссылки на документы со страницы"""
         r = requests.get(page_url, proxies=self.configs.PROXY).content.decode("cp1251")
+        # self.logger.info(f"get links from pages resp {r}")
         soup = BeautifulSoup(r, "html.parser")
         # переключились на нужный iframe
         iframe_src = soup.select_one("#list").attrs["src"]

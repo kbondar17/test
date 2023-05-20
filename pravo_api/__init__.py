@@ -1,1 +1,1 @@
-from .worker import PravoApi
+from .worker import PravoApi, Configs
